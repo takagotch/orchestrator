@@ -41,7 +41,29 @@ func promptForSSLPasswords() {
 
 func standardHttp(continuousDiscovery bool) {}
 
-func agentsHttp() {}
+func agentsHttp() {
+  m := martini.Classic()
+  m.Use(gzip.All())
+  m.Use(render.Renderer())
+  if config.Config.AgentsUseMutualTLS {
+    m.Use(ssl.VerifyOUs(config.Config.AgentSSLValidOUs))
+  }
+  
+  log.Info("Starting agents listener")
+  
+  agent.AgentsAPI.URLPrefix = config.Config.URLPrefix
+  http.AgentsAPI.RegisterRequests(m)
+  
+  if config.Config.AgentsUseSSL {
+  
+  } else {
+    log.Info("Starting agent HTTP listener")
+    if err := nethttp.ListenAndServe(config.Config.AgentsServerPort, m); err != nil {
+    　　log.Fatale(err)
+    }
+  }
+  log.Info("Agent server started")
+}
 
 ```
 
